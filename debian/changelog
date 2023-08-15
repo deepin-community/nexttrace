@@ -1,3 +1,9 @@
+nexttrace (1.1.6-0deepin1) UNRELEASED; urgency=medium
+
+  * Add golang dependencies
+
+ -- Chang Yang <yangchang@deepin.org>  Tue, 15 Aug 2023 14:39:44 +0800
+
 nexttrace (1.1.6) UNRELEASED; urgency=medium
 
   * init
