@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/xgadget-lab/nexttrace/trace"
+	"github.com/nxtrace/NTrace-core/trace"
 )
 
 func RealtimePrinter(res *trace.Result, ttl int) {
@@ -98,7 +98,13 @@ func RealtimePrinter(res *trace.Result, ttl int) {
 			}
 
 			if whoisFormat[0] != "" {
-				whoisFormat[0] = "[" + whoisFormat[0] + "]"
+				//如果以RFC或DOD开头那么为空
+				if !(strings.HasPrefix(whoisFormat[0], "RFC") ||
+					strings.HasPrefix(whoisFormat[0], "DOD")) {
+					whoisFormat[0] = "[" + whoisFormat[0] + "]"
+				} else {
+					whoisFormat[0] = ""
+				}
 			}
 
 			// CMIN2, CUII, CN2, CUG 改为壕金色高亮
@@ -159,6 +165,11 @@ func RealtimePrinter(res *trace.Result, ttl int) {
 					color.New(color.FgHiCyan, color.Bold).Sprintf("%s", v[j]),
 				)
 			}
+		}
+		for _, v := range res.Hops[ttl][i].MPLS {
+			fmt.Fprintf(color.Output, "%s",
+				color.New(color.FgHiBlack, color.Bold).Sprintf("\n    %s", v),
+			)
 		}
 		fmt.Println()
 		blockDisplay = true

@@ -1,5 +1,5 @@
 #!/usr/bin/make -f
-export DH_GOPKG := github.com/xgadget-lab/nexttrace
+export DH_GOPKG := github.com/nxtrace/NTrace-core
 
 %:
 	dh $@ -Sgolang --with=golang

@@ -18,12 +18,13 @@ Build-Depends:
         golang-github-spf13-viper-dev,
         golang-gocapability-dev,
         golang-github-tidwall-gjson-dev,
-        golang-golang-x-sync-dev
+        golang-golang-x-sync-dev,
+        golang-github-tsosunchia-powclient-dev
 Standards-Version: 4.1.3
 Homepage: https://github.com/deepin-community/nexttrace
 Vcs-Browser: https://github.com/nxtrace/Ntrace-core
 Vcs-Git: https://github.com/nxtrace/Ntrace-core.git
-XS-Go-Import-Path: github.com/xgadget-lab/nexttrace
+XS-Go-Import-Path: github.com/nxtrace/NTrace-core
 
 Package: nexttrace
 Architecture: any

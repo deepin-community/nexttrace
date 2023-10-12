@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/lionsoul2014/ip2region/v1.0/binding/golang/ip2region"
 )
@@ -22,21 +23,31 @@ func downloadDataBase() error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(resp.Body)
 
 	// Create the file
 	out, err := os.Create(ipDataBasePath)
 	if err != nil {
 		return err
 	}
-	defer out.Close()
+	defer func(out *os.File) {
+		err := out.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(out)
 
 	// Write the body to file
 	_, err = io.Copy(out, resp.Body)
 	return err
 }
 
-func IP2Region(ip string) (*IPGeoData, error) {
+func IP2Region(ip string, _ time.Duration, _ string, _ bool) (*IPGeoData, error) {
 	if _, err := os.Stat(ipDataBasePath); os.IsNotExist(err) {
 		if err = downloadDataBase(); err != nil {
 			panic("Download Failed!")

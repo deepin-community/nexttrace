@@ -1,6 +1,7 @@
 package trace
 
 import (
+	"bytes"
 	"encoding/binary"
 	"log"
 	"net"
@@ -25,6 +26,7 @@ type ICMPTracerv6 struct {
 	icmpListen            net.PacketConn
 	final                 int
 	finalLock             sync.Mutex
+	fetchLock             sync.Mutex
 }
 
 func (t *ICMPTracerv6) PrintFunc() {
@@ -135,6 +137,7 @@ func (t *ICMPTracerv6) Execute() (*Result, error) {
 
 func (t *ICMPTracerv6) listenICMP() {
 	lc := NewPacketListener(t.icmpListen, t.ctx)
+	psize = t.Config.PktSize
 	go lc.Start()
 	for {
 		select {
@@ -231,10 +234,13 @@ func (t *ICMPTracerv6) listenICMP() {
 func (t *ICMPTracerv6) handleICMPMessage(msg ReceivedMessage, icmpType int8, data []byte, ttl int) {
 	t.inflightRequestRWLock.RLock()
 	defer t.inflightRequestRWLock.RUnlock()
+
+	mpls := extractMPLS(msg, data)
 	if _, ok := t.inflightRequest[ttl]; ok {
 		t.inflightRequest[ttl] <- Hop{
 			Success: true,
 			Address: msg.Peer,
+			MPLS:    mpls,
 		}
 	}
 }
@@ -249,8 +255,9 @@ func (t *ICMPTracerv6) send(ttl int) error {
 	icmpHeader := icmp.Message{
 		Type: ipv6.ICMPTypeEchoRequest, Code: 0,
 		Body: &icmp.Echo{
-			ID:   id,
-			Data: []byte("HELLO-R-U-THERE"),
+			ID: id,
+			//Data: []byte("HELLO-R-U-THERE"),
+			Data: append(bytes.Repeat([]byte{1}, t.Config.PktSize-4), 0x00, 0x00, 0x4f, 0xff),
 			Seq:  ttl,
 		},
 	}
@@ -298,6 +305,8 @@ func (t *ICMPTracerv6) send(ttl int) error {
 		h.TTL = ttl
 		h.RTT = rtt
 
+		t.fetchLock.Lock()
+		defer t.fetchLock.Unlock()
 		h.fetchIPData(t.Config)
 
 		t.res.add(h)

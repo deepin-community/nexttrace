@@ -2,7 +2,7 @@ package ipgeo
 
 import (
 	"encoding/json"
-	"github.com/xgadget-lab/nexttrace/util"
+	"github.com/nxtrace/NTrace-core/util"
 	"io"
 	"log"
 	"net/http"
@@ -10,11 +10,11 @@ import (
 	"time"
 )
 
-func Chunzhen(ip string) (*IPGeoData, error) {
+func Chunzhen(ip string, timeout time.Duration, _ string, _ bool) (*IPGeoData, error) {
 	url := util.GetenvDefault("NEXTTRACE_CHUNZHENURL", "http://127.0.0.1:2060") + "?ip=" + ip
 	client := &http.Client{
 		// 2 秒超时
-		Timeout: 2 * time.Second,
+		Timeout: timeout,
 	}
 	req, _ := http.NewRequest("GET", url, nil)
 	content, err := client.Do(req)

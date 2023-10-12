@@ -1,6 +1,7 @@
 package trace
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -26,7 +27,10 @@ type ICMPTracer struct {
 	icmpListen            net.PacketConn
 	final                 int
 	finalLock             sync.Mutex
+	fetchLock             sync.Mutex
 }
+
+var psize = 52
 
 func (t *ICMPTracer) PrintFunc() {
 	defer t.wg.Done()
@@ -116,6 +120,7 @@ func (t *ICMPTracer) Execute() (*Result, error) {
 
 func (t *ICMPTracer) listenICMP() {
 	lc := NewPacketListener(t.icmpListen, t.ctx)
+	psize = t.Config.PktSize
 	go lc.Start()
 	for {
 		select {
@@ -173,10 +178,13 @@ func (t *ICMPTracer) listenICMP() {
 func (t *ICMPTracer) handleICMPMessage(msg ReceivedMessage, icmpType int8, data []byte, ttl int) {
 	t.inflightRequestRWLock.RLock()
 	defer t.inflightRequestRWLock.RUnlock()
+
+	mpls := extractMPLS(msg, data)
 	if _, ok := t.inflightRequest[ttl]; ok {
 		t.inflightRequest[ttl] <- Hop{
 			Success: true,
 			Address: msg.Peer,
+			MPLS:    mpls,
 		}
 	}
 }
@@ -199,7 +207,7 @@ func gernerateID(ttl_int int) int {
 		id += "0"
 	}
 
-	res, _ := strconv.ParseInt(id, 2, 64)
+	res, _ := strconv.ParseInt(id, 2, 32)
 	return int(res)
 }
 
@@ -252,8 +260,9 @@ func (t *ICMPTracer) send(ttl int) error {
 	icmpHeader := icmp.Message{
 		Type: ipv4.ICMPTypeEcho, Code: 0,
 		Body: &icmp.Echo{
-			ID:   id,
-			Data: []byte("HELLO-R-U-THERE"),
+			ID: id,
+			//Data: []byte("HELLO-R-U-THERE"),
+			Data: append(bytes.Repeat([]byte{1}, t.Config.PktSize-4), 0x00, 0x00, 0x4f, 0xff),
 			Seq:  ttl,
 		},
 	}
@@ -298,6 +307,8 @@ func (t *ICMPTracer) send(ttl int) error {
 		h.TTL = ttl
 		h.RTT = rtt
 
+		t.fetchLock.Lock()
+		defer t.fetchLock.Unlock()
 		h.fetchIPData(t.Config)
 
 		t.res.add(h)

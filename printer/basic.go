@@ -2,15 +2,16 @@ package printer
 
 import (
 	"fmt"
-	"github.com/xgadget-lab/nexttrace/trace"
+	"github.com/nxtrace/NTrace-core/config"
+	"github.com/nxtrace/NTrace-core/trace"
 	"net"
 
 	"github.com/fatih/color"
 )
 
-var version = "v0.0.0.alpha"
-var buildDate = ""
-var commitID = ""
+var version = config.Version
+var buildDate = config.BuildDate
+var commitID = config.CommitID
 
 func Version() {
 	fmt.Fprintf(color.Output, "%s %s %s %s\n",
@@ -40,13 +41,14 @@ func CopyRight() {
 		color.New(color.FgHiBlack, color.Bold).Sprintf("%s", "zhshch@athorx.com"),
 	)
 
-	MoeQingOrgCopyRight()
-	PluginCopyRight()
+	moeQingOrgCopyRight()
+	sponsor()
+	//PluginCopyRight()
 }
 
-func MoeQingOrgCopyRight() {
+func moeQingOrgCopyRight() {
 	fmt.Fprintf(color.Output, "%s\n%s %s\n%s %s\n\n",
-		color.New(color.FgHiYellow, color.Bold).Sprintf("%s", "MoeQing Network"),
+		color.New(color.FgGreen, color.Bold).Sprintf("%s", "Supported by MoeQing Network"),
 		color.New(color.FgWhite, color.Bold).Sprintf("%s", "YekongTAT"),
 		color.New(color.FgHiBlack, color.Bold).Sprintf("%s", "yekongtat@gmail.com"),
 		color.New(color.FgWhite, color.Bold).Sprintf("%s", "Haima"),
@@ -54,28 +56,47 @@ func MoeQingOrgCopyRight() {
 	)
 }
 
-func PluginCopyRight() {
-	fmt.Fprintf(color.Output, "%s\n%s %s\n\n",
-		color.New(color.FgGreen, color.Bold).Sprintf("%s", "NextTrace Map Plugin Author"),
-		color.New(color.FgWhite, color.Bold).Sprintf("%s", "Tso"),
-		color.New(color.FgHiBlack, color.Bold).Sprintf("%s", "tsosunchia@gmail.com"),
+func sponsor() {
+	fmt.Fprintf(color.Output, "%s\n%s\n%s\n%s\n",
+		color.New(color.FgGreen, color.Bold).Sprintf("%s", "Sponsored by the following entities"),
+		color.New(color.FgWhite, color.Bold).Sprintf("%s", "DMIT.io"),
+		color.New(color.FgWhite, color.Bold).Sprintf("%s", "Misaka.io"),
+		color.New(color.FgWhite, color.Bold).Sprintf("%s", "Skywolf.cloud"),
 	)
 }
 
-func PrintTraceRouteNav(ip net.IP, domain string, dataOrigin string, maxHops int) {
+//func PluginCopyRight() {
+//	fmt.Fprintf(color.Output, "%s\n%s %s\n\n",
+//		color.New(color.FgGreen, color.Bold).Sprintf("%s", "NextTrace Map Plugin Author"),
+//		color.New(color.FgWhite, color.Bold).Sprintf("%s", "Tso"),
+//		color.New(color.FgHiBlack, color.Bold).Sprintf("%s", "tsosunchia@gmail.com"),
+//	)
+//}
+
+func PrintTraceRouteNav(ip net.IP, domain string, dataOrigin string, maxHops int, packetSize int) {
 	fmt.Println("IP Geo Data Provider: " + dataOrigin)
 
 	if ip.String() == domain {
-		fmt.Printf("traceroute to %s, %d hops max, 32 byte packets\n", ip.String(), maxHops)
+		fmt.Printf("traceroute to %s, %d hops max, %d bytes packets\n", ip.String(), maxHops, packetSize)
 	} else {
-		fmt.Printf("traceroute to %s (%s), %d hops max, 32 byte packets\n", ip.String(), domain, maxHops)
+		fmt.Printf("traceroute to %s (%s), %d hops max, %d bytes packets\n", ip.String(), domain, maxHops, packetSize)
 	}
 }
 
 func applyLangSetting(h *trace.Hop) {
 	if len(h.Geo.Country) <= 1 {
-		h.Geo.Country = "局域网"
-		h.Geo.CountryEn = "LAN Address"
+		//打印h.geo
+		if h.Geo.Whois != "" {
+			h.Geo.Country = h.Geo.Whois
+		} else {
+			if h.Geo.Source != "LeoMoeAPI" {
+				h.Geo.Country = "网络故障"
+				h.Geo.CountryEn = "Network Error"
+			} else {
+				h.Geo.Country = "未知"
+				h.Geo.CountryEn = "Unknown"
+			}
+		}
 	}
 
 	if h.Lang == "en" {
@@ -97,4 +118,5 @@ func applyLangSetting(h *trace.Hop) {
 			}
 		}
 	}
+
 }
