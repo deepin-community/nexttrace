@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
-	"github.com/xgadget-lab/nexttrace/util"
+	"github.com/nxtrace/NTrace-core/util"
 	"golang.org/x/net/context"
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv4"
@@ -28,7 +28,8 @@ type UDPTracer struct {
 	final     int
 	finalLock sync.Mutex
 
-	sem *semaphore.Weighted
+	sem       *semaphore.Weighted
+	fetchLock sync.Mutex
 }
 
 func (t *UDPTracer) Execute() (*Result, error) {
@@ -60,14 +61,14 @@ func (t *UDPTracer) Execute() (*Result, error) {
 		for i := 0; i < t.NumMeasurements; i++ {
 			t.wg.Add(1)
 			go t.send(ttl)
-
+			<-time.After(time.Millisecond * time.Duration(t.Config.PacketInterval))
 		}
 		if t.RealtimePrinter != nil {
 			// 对于实时模式，应该按照TTL进行并发请求
 			t.wg.Wait()
 			t.RealtimePrinter(&t.res, ttl-1)
 		}
-		time.Sleep(1 * time.Millisecond)
+		<-time.After(time.Millisecond * time.Duration(t.Config.TTLInterval))
 	}
 	go func() {
 		if t.AsyncPrinter != nil {
@@ -188,7 +189,12 @@ func (t *UDPTracer) send(ttl int) error {
 			ComputeChecksums: true,
 			FixLengths:       true,
 		}
-		if err := gopacket.SerializeLayers(buf, opts, udpHeader, gopacket.Payload("HAJSFJHKAJSHFKJHAJKFHKASHKFHHKAFKHFAHSJK")); err != nil {
+
+		desiredPayloadSize := t.Config.PktSize
+		payload := make([]byte, desiredPayloadSize)
+		copy(buf.Bytes(), payload)
+
+		if err := gopacket.SerializeLayers(buf, opts, udpHeader); err != nil {
 			return err
 		}
 
@@ -256,6 +262,8 @@ func (t *UDPTracer) send(ttl int) error {
 		h.TTL = ttl
 		h.RTT = rtt
 
+		t.fetchLock.Lock()
+		defer t.fetchLock.Unlock()
 		h.fetchIPData(t.Config)
 
 		t.res.add(h)

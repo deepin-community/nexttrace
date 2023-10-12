@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/xgadget-lab/nexttrace/trace"
+	"github.com/nxtrace/NTrace-core/trace"
 
-	"github.com/xgadget-lab/nexttrace/ipgeo"
+	"github.com/nxtrace/NTrace-core/ipgeo"
 )
 
 // var dataOrigin string
@@ -46,6 +46,9 @@ func HopPrinter(h trace.Hop, info HopInfo) {
 
 		if h.Geo != nil {
 			txt += " " + formatIpGeoData(h.Address.String(), h.Geo)
+		}
+		for _, v := range h.MPLS {
+			txt += " " + v
 		}
 		switch info {
 		case IXP:

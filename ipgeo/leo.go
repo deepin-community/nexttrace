@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/nxtrace/NTrace-core/wshandle"
 	"github.com/tidwall/gjson"
-	"github.com/xgadget-lab/nexttrace/wshandle"
 )
 
 /***
@@ -55,7 +55,10 @@ func receiveParse() {
 		}
 
 		m := make(map[string][]string)
-		json.Unmarshal([]byte(res.Get("router").String()), &m)
+		err := json.Unmarshal([]byte(res.Get("router").String()), &m)
+		if err != nil {
+			// 此处是正常的，因为有些IP没有路由信息
+		}
 
 		lat, _ := strconv.ParseFloat(res.Get("lat").String(), 32)
 		lng, _ := strconv.ParseFloat(res.Get("lng").String(), 32)
@@ -80,15 +83,20 @@ func receiveParse() {
 	}
 }
 
-func LeoIP(ip string) (*IPGeoData, error) {
-	// 初始化通道 - 向池子里添加IP的Channel，返回IP数据是通过字典中对应键为IP的Channel来获取的
+func LeoIP(ip string, timeout time.Duration, lang string, maptrace bool) (*IPGeoData, error) {
+	// TODO: 根据lang的值请求中文/英文API
+	// TODO: 根据maptrace的值决定是否请求经纬度信息
+	if timeout < 5*time.Second {
+		timeout = 5 * time.Second
+	}
+
+	// 缓存中没有找到IP信息，需要请求API获取
 	IPPools.poolMux.Lock()
-	defer IPPools.poolMux.Unlock()
 	// 如果之前已经被别的协程初始化过了就不用初始化了
 	if IPPools.pool[ip] == nil {
 		IPPools.pool[ip] = make(chan IPGeoData)
 	}
-
+	IPPools.poolMux.Unlock()
 	// 发送请求
 	sendIPRequest(ip)
 	// 同步开启监听
@@ -99,10 +107,8 @@ func LeoIP(ip string) (*IPGeoData, error) {
 	case res := <-IPPools.pool[ip]:
 		return &res, nil
 	// 5秒后依旧没有接收到返回的IP数据，不再等待，超时异常处理
-	case <-time.After(5 * time.Second):
-		// default:
+	case <-time.After(timeout):
 		// 这里不可以返回一个 nil，否则在访问对象内部的键值的时候会报空指针的 Fatal Error
 		return &IPGeoData{}, errors.New("TimeOut")
 	}
-
 }

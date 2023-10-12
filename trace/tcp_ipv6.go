@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
-	"github.com/xgadget-lab/nexttrace/util"
+	"github.com/nxtrace/NTrace-core/util"
 	"golang.org/x/net/context"
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv6"
@@ -31,7 +31,8 @@ type TCPTracerv6 struct {
 	final     int
 	finalLock sync.Mutex
 
-	sem *semaphore.Weighted
+	sem       *semaphore.Weighted
+	fetchLock sync.Mutex
 }
 
 func (t *TCPTracerv6) Execute() (*Result, error) {
@@ -63,7 +64,7 @@ func (t *TCPTracerv6) Execute() (*Result, error) {
 
 	t.sem = semaphore.NewWeighted(int64(t.ParallelRequests))
 
-	for ttl := 1; ttl <= t.MaxHops; ttl++ {
+	for ttl := t.BeginHop; ttl <= t.MaxHops; ttl++ {
 		// 如果到达最终跳，则退出
 		if t.final != -1 && ttl > t.final {
 			break
@@ -71,14 +72,14 @@ func (t *TCPTracerv6) Execute() (*Result, error) {
 		for i := 0; i < t.NumMeasurements; i++ {
 			t.wg.Add(1)
 			go t.send(ttl)
+			<-time.After(time.Millisecond * time.Duration(t.Config.PacketInterval))
 		}
 		if t.RealtimePrinter != nil {
 			// 对于实时模式，应该按照TTL进行并发请求
 			t.wg.Wait()
 			t.RealtimePrinter(&t.res, ttl-1)
 		}
-		time.Sleep(1 * time.Millisecond)
-
+		<-time.After(time.Millisecond * time.Duration(t.Config.TTLInterval))
 	}
 
 	go func() {
@@ -223,6 +224,11 @@ func (t *TCPTracerv6) send(ttl int) error {
 		ComputeChecksums: true,
 		FixLengths:       true,
 	}
+
+	desiredPayloadSize := t.Config.PktSize
+	payload := make([]byte, desiredPayloadSize)
+	copy(buf.Bytes(), payload)
+
 	if err := gopacket.SerializeLayers(buf, opts, tcpHeader); err != nil {
 		return err
 	}
@@ -268,6 +274,8 @@ func (t *TCPTracerv6) send(ttl int) error {
 		h.TTL = ttl
 		h.RTT = rtt
 
+		t.fetchLock.Lock()
+		defer t.fetchLock.Unlock()
 		h.fetchIPData(t.Config)
 
 		t.res.add(h)

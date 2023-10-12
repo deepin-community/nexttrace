@@ -12,42 +12,128 @@
 <h4 align="center">一款追求轻量化的开源可视化路由跟踪工具。</h4>
 
 <p align="center">
-  <a href="https://github.com/sjlleo/nexttrace/actions">
-    <img src="https://img.shields.io/github/actions/workflow/status/sjlleo/nexttrace/build.yml?branch=main&style=flat-square" alt="Github Actions">
+  <a href="https://github.com/nxtrace/Ntrace-V1/actions">
+    <img src="https://img.shields.io/github/actions/workflow/status/nxtrace/Ntrace-V1/build.yml?branch=main&style=flat-square" alt="Github Actions">
   </a>
-  <a href="https://goreportcard.com/report/github.com/sjlleo/nexttrace">
-    <img src="https://goreportcard.com/badge/github.com/sjlleo/nexttrace?style=flat-square">
+  <a href="https://goreportcard.com/report/github.com/nxtrace/Ntrace-V1">
+    <img src="https://goreportcard.com/badge/github.com/nxtrace/Ntrace-V1?style=flat-square">
   </a>
-  <a href="https://github.com/sjlleo/nexttrace/releases">
-    <img src="https://img.shields.io/github/release/sjlleo/nexttrace/all.svg?style=flat-square">
+  <a href="https://github.com/nxtrace/Ntrace-V1/releases">
+    <img src="https://img.shields.io/github/release/nxtrace/Ntrace-V1/all.svg?style=flat-square">
+  </a>
+  <a href="https://telegram.dog/sjprojects">
+    <img src="https://img.shields.io/endpoint?color=neon&style=flat-square&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fnexttrace">
   </a>
 </p>
 
-如果您喜欢这个项目，可以通过[爱发电支持](https://afdian.net/a/sjlleo/plan)我们项目的持续发展，您的捐助将用于服务器和 API 开支，非常感谢！
+## IAAS Sponsor
+
+<div style="text-align: center;">
+    <a href="https://dmit.io">
+        <img src="https://www.dmit.io/templates/dmit_theme_2020/dmit/assets/images/dmit_logo_with_text_blue.svg" width="170.7" height="62.9">
+    </a>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <a href="https://misaka.io" >
+        <img src="https://www.jsdelivr.com/assets/8997e39e1f9d776502ab4d7cdff9d1608aa67aaf/img/globalping/sponsors/misaka.svg" width="170.7" height="62.9">
+    </a>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <a href="https://skywolf.cloud" >
+        <img src="https://hk.skywolf.cloud/assets/img/skywolf.svg" width="170.7" height="62.9">
+    </a>
+</div>
+
+
+
+我们非常感谢 [DMIT](https://dmit.io) 和 [Misaka](https://misaka.io) 和 [Skywolf](https://skywolf.cloud) 提供了支持本项目所需的网络基础设施。
 
 ## How To Use
 
+Document Language: [English](README.md) | 简体中文
+
+关于NTrace-V1和NTrace-core两个仓库的说明：<br>
+二者将大体上保持一致。所有的开发工作均在NTrace-V1仓库中进行。NTrace-V1仓库首先发布新版本，在稳定运行一段时间后（时长不定），我们会把版本同步至NTrace-core。这意味着NTrace-V1仓库充当了一个“测试版”的角色。<br>
+请注意，版本同步也存在例外。如果NTrace-V1的某个版本出现了严重的bug，NTrace-core会跳过这一有缺陷的版本，直接同步到下一个修复了该问题的版本。
+
 ### Before Using
 
-使用 NextTrace 之前，我们建议您先阅读 [#IP 数据以及精准度说明](https://github.com/sjlleo/nexttrace/blob/main/README_zh_CN.md#ip-%E6%95%B0%E6%8D%AE%E4%BB%A5%E5%8F%8A%E7%B2%BE%E5%87%86%E5%BA%A6%E8%AF%B4%E6%98%8E)，在了解您自己的对数据精准度需求以后再进行抉择。
+使用 NextTrace 之前，我们建议您先阅读 [#IP 数据以及精准度说明](https://github.com/nxtrace/NTrace-core/blob/main/README_zh_CN.md#ip-%E6%95%B0%E6%8D%AE%E4%BB%A5%E5%8F%8A%E7%B2%BE%E5%87%86%E5%BA%A6%E8%AF%B4%E6%98%8E)，在了解您自己的对数据精准度需求以后再进行抉择。
+
+[NextTrace 的Telegram频道](https://t.me/nexttrace)由项目成员负责，会传递一部分通知，也会发布一些成员自己分享的小工具。项目成员的意见可作为未来项目发展的可能方向，随着开发进度变化可能会有所改动，不代表未来一定会实装，正式定稿公告会发布于 Issue 中。
 
 ### Automated Install
 
-```bash
-# Linux 一键安装脚本
-bash -c "$(curl -Ls https://raw.githubusercontent.com/sjlleo/nexttrace/main/nt_install.sh)"
+* Linux 
+  * 一键安装脚本
 
-# macOS brew 安装命令
-brew tap xgadget-lab/nexttrace && brew install nexttrace
+    ```shell
+    bash -c "$(curl http://nexttrace-io-leomoe-api-a0.shop/nt_install_v1.sh)"
+    ```
+    
+  * Arch Linux AUR 安装命令
+     * 直接下载bin包(仅支持amd64)
 
-# GHPROXY 镜像（国内使用）
-bash -c "$(curl -Ls https://ghproxy.com/https://raw.githubusercontent.com/sjlleo/nexttrace/main/nt_install.sh)"
-```
+          ```shell
+          yay -S nexttrace-bin`
+          ```
+     * AUR 的构建分别由 ouuan 维护
+  * Linuxbrew 安装命令
 
-Windows 用户请直接前往 [Release](https://github.com/sjlleo/nexttrace/releases/latest) 下载编译后的二进制 exe 文件。
+     同macOS Homebrew安装方法(homebrew-core版仅支持amd64)
+  * Deepin 安装命令
 
-- `Release`里面为很多系统以及不同架构提供了编译好的二进制可执行文件，如果没有可以自行编译。
-- 一些本项目的必要依赖在`Windows`上`Golang`底层实现不完全，所以目前`NextTrace`在`Windows`平台出于实验性支持阶段。
+     ```shell
+     apt install nexttrace
+     ```
+  * Termux 安装命令
+    
+     ```shell
+     pkg install nexttrace-enhanced
+     ```
+      
+     
+* macOS
+  * macOS Homebrew 安装命令
+     * homebrew-core版
+
+          ```shell
+          brew install nexttrace
+          ```
+     * 本仓库ACTIONS自动构建版(更新更快)
+
+          ```shell
+          brew tap nxtrace/nexttrace && brew install nxtrace/nexttrace/nexttrace
+          ```
+     * homebrew-core 构建由 chenrui333 维护，请注意该版本更新可能会落后仓库Action自动构建版本
+
+* Windows
+  * Windows Scoop 安装命令
+     * scoop-extras版
+
+          ```powershell
+          scoop bucket add extras && scoop install extras/nexttrace
+          ```
+
+     * scoop-extra 由 soenggam 维护
+
+  请注意，以上多种安装方式的仓库均由开源爱好者自行维护，不保证可用性和及时更新，如遇到问题请联系仓库维护者解决，或使用本项目官方编译提供的二进制包。
+
+### Manual Install
+* 下载预编译的可执行程序
+    
+    对于以上方法没有涵盖的用户，请直接前往 [Release](https://github.com/nxtrace/Ntrace-V1/releases/latest) 下载编译后的二进制可执行文件。
+
+    * `Release`里面为很多系统以及不同架构提供了编译好的二进制可执行文件，如果没有可以自行编译。
+    * 一些本项目的必要依赖在`Windows`上`Golang`底层实现不完全，所以目前`NextTrace`在`Windows`平台出于实验性支持阶段。
+
+* 从源码安装
+
+    您可在自行安装Go >= 1.20后，使用以下命令安装
+
+    ```shell
+    go install github.com/nxtrace/Ntrace-V1@latest
+    ```
+    安装后可执行文件在`$GOPATH/bin`目录下，如果您没有设置`GOPATH`，则在`$HOME/go/bin`目录下。
+
 
 ### Get Started
 
@@ -76,6 +162,10 @@ nexttrace 2606:4700:4700::1111
 # 禁用路径可视化 使用 --map / -M 参数
 nexttrace koreacentral.blob.core.windows.net
 # MapTrace URL: https://api.leo.moe/tracemap/html/c14e439e-3250-5310-8965-42a1e3545266.html
+
+# 禁用MPLS显示 使用 --disable-mpls / -e 参数 或 NEXTTRACE_DISABLEMPLS 环境变量
+nexttrace --disable-mpls example.com
+export NEXTTRACE_DISABLEMPLS=1
 ```
 
 PS: 路由可视化的绘制模块由 [@tsosunchia](https://github.com/tsosunchia) 同学编写，具体代码可在 [tsosunchia/traceMap](https://github.com/tsosunchia/traceMap) 查看
@@ -138,6 +228,9 @@ nexttrace --first 5 --max-hops 10 www.decix.net
 # 关闭IP反向解析功能
 nexttrace --no-rdns www.bbix.net
 
+# 设置载荷大小为1024字节
+nexttrace --psize 1024 example.com
+
 # 特色功能：打印Route-Path图
 # Route-Path图示例：
 # AS6453 塔塔通信「Singapore『Singapore』」
@@ -185,18 +278,20 @@ nexttrace -T -q 2 --parallel-requests 1 -t -R 2001:4860:4860::8888
 ### 全部用法详见 Usage 菜单
 
 ```shell
-Usage: nexttrace [-h|--help] [-T|--tcp] [-U|--udp] [-F|--fast-trace] [-p|--port
-                 <integer>] [-q|--queries <integer>] [--parallel-requests
-                 <integer>] [-m|--max-hops <integer>] [-d|--data-provider
+Usage: nexttrace [-h|--help] [-4|--ipv4] [-6|--ipv6] [-T|--tcp] [-U|--udp]
+                 [-F|--fast-trace] [-p|--port <integer>] [-q|--queries
+                 <integer>] [--parallel-requests <integer>] [-m|--max-hops
+                 <integer>] [-d|--data-provider
                  (Ip2region|ip2region|IP.SB|ip.sb|IPInfo|ipinfo|IPInsight|ipinsight|IPAPI.com|ip-api.com|IPInfoLocal|ipinfolocal|chunzhen|LeoMoeAPI|leomoeapi|disable-geoip)]
                  [-n|--no-rdns] [-a|--always-rdns] [-P|--route-path]
                  [-r|--report] [--dn42] [-o|--output] [-t|--table] [--raw]
                  [-j|--json] [-c|--classic] [-f|--first <integer>] [-M|--map]
                  [-v|--version] [-s|--source "<value>"] [-D|--dev "<value>"]
                  [-R|--route] [-z|--send-time <integer>] [-i|--ttl-time
-                 <integer>] [_positionalArg_nexttrace_27 "<value>"]
-                 [--dot-server (dnssb|aliyun|dnspod|google|cloudflare)]
-                 [-g|--language (en|cn)]
+                 <integer>] [--timeout <integer>] [--psize <integer>]
+                 [_positionalArg_nexttrace_31 "<value>"] [--dot-server
+                 (dnssb|aliyun|dnspod|google|cloudflare)] [-g|--language
+                 (en|cn)]
 
 Arguments:
 
@@ -225,8 +320,11 @@ Arguments:
                                      reached). Default: 30
   -d  --data-provider                Choose IP Geograph Data Provider [IP.SB,
                                      IPInfo, IPInsight, IP-API.com, Ip2region,
-                                     IPInfoLocal, CHUNZHEN, disable-geoip]. 
+                                     IPInfoLocal, CHUNZHEN, disable-geoip].
                                      Default: LeoMoeAPI
+      --pow-provider                 Choose PoW Provider [api.leo.moe, sakura]
+                                     For China mainland users, please use
+                                     sakura. Default: api.leo.moe
   -n  --no-rdns                      Do not resolve IP addresses to their
                                      domain names
   -a  --always-rdns                  Always resolve IP addresses to their
@@ -238,26 +336,33 @@ Arguments:
   -o  --output                       Write trace result to file
                                      (RealTimePrinter ONLY)
   -t  --table                        Output trace results as table
-  --raw                              An Output Easy to Parse
+      --raw                          An Output Easy to Parse
   -j  --json                         Output trace results as JSON
   -c  --classic                      Classic Output trace results like
                                      BestTrace
   -f  --first                        Start from the first_ttl hop (instead from
                                      1). Default: 1
   -M  --map                          Disable Print Trace Map
+  -e  --disable-mpls                 Disable MPLS
   -v  --version                      Print version info and exit
   -s  --source                       Use source src_addr for outgoing packets
   -D  --dev                          Use the following Network Devices as the
                                      source address in outgoing packets
   -R  --route                        Show Routing Table [Provided By BGP.Tools]
-  -z  --send-time                    Set the time interval for sending every
-                                     packet. Useful when some routers use
-                                     rate-limit for ICMP messages. Default: 100
-  -i  --ttl-time                     Set the time interval for sending packets
-                                     groups by TTL. Useful when some routers
-                                     use rate-limit for ICMP messages. Default:
-                                     500
-      --_positionalArg_nexttrace_25  IP Address or domain name
+  -z  --send-time                    Set how many [milliseconds] between
+                                     sending each packet.. Useful when some
+                                     routers use rate-limit for ICMP messages.
+                                     Default: 100
+  -i  --ttl-time                     Set how many [milliseconds] between
+                                     sending packets groups by TTL. Useful when
+                                     some routers use rate-limit for ICMP
+                                     messages. Default: 500
+      --timeout                      The number of [milliseconds] to keep probe
+                                     sockets open before giving up on the
+                                     connection.. Default: 1000
+      --psize                        Set the packet size (payload size).
+                                     Default: 52
+      --_positionalArg_nexttrace_31  IP Address or domain name
       --dot-server                   Use DoT Server for DNS Parse [dnssb,
                                      aliyun, dnspod, google, cloudflare]
   -g  --language                     Choose the language for displaying [en,
@@ -272,7 +377,7 @@ Arguments:
 
 ## 第三方 IP 数据库 API 开发接口
 
-NextTrace 所有的的 IP 地理位置 `API DEMO` 可以参考[这里](https://github.com/sjlleo/nexttrace/blob/main/ipgeo/)
+NextTrace 所有的的 IP 地理位置 `API DEMO` 可以参考[这里](https://github.com/nxtrace/NTrace-core/blob/main/ipgeo/)
 
 你可以在这里添加你自己的 API 接口，为了 NextTrace 能够正确显示你接口中的内容，请参考 `leo.go` 中所需要的信息
 
@@ -280,13 +385,38 @@ NextTrace 所有的的 IP 地理位置 `API DEMO` 可以参考[这里](https://g
 
 [GitHub - sjlleo/nexttrace-backend: NextTrace BackEnd](https://github.com/sjlleo/nexttrace-backend)
 
-## NextTrace Enhanced
+NextTrace `LeoMoeAPI`现已使用Proof of Work(POW)机制来防止滥用，其中NextTrace作为客户端引入了powclient库，POW CLIENT/SERVER均已开源，欢迎大家使用。(POW模块相关问题请发到对应的仓库)
+- [GitHub - tsosunchia/powclient: Proof of Work CLIENT for NextTrace](https://github.com/tsosunchia/powclient)
+- [GitHub - tsosunchia/powserver: Proof of Work SERVER for NextTrace](https://github.com/tsosunchia/powserver)
 
-https://github.com/OwO-Network/nexttrace-enhanced
+对于中国大陆用户，可以使用 [Nya Labs](https://natfrp.com) 提供的位于大陆的POW服务器优化访问速度
+```shell
+#使用方法任选其一
+#1. 在环境变量中设置
+export NEXTTRACE_POWPROVIDER=sakura
+#2. 在命令行中设置
+nexttrace --pow-provider sakura
+```
+
+## OpenTrace
+
+`OpenTrace`是 @Archeb 开发的`NextTrace`的跨平台`GUI`版本，带来您熟悉但更强大的用户体验。
+
+该软件仍然处于早期开发阶段，可能存在许多缺陷和错误，需要您宝贵的使用反馈。
+
+[https://github.com/Archeb/opentrace](https://github.com/Archeb/opentrace)
+
+## NEXTTRACE WEB API
+
+`NextTraceWebApi`是一个`MTR`风格的`NextTrace`网页版服务端实现，提供了包括`Docker`在内多种部署方式。
+
+[https://github.com/nxtrace/nexttracewebapi](https://github.com/nxtrace/nexttracewebapi)
 
 ## Credits
 
-BGP.TOOLS 提供了本项目的一些数据支持，在此表示由衷地感谢。
+[sjlleo](https://github.com/sjlleo) NextTrace 项目永远的领导者、创始人及核心贡献者
+
+[BGP.TOOLS](https://bgp.tools) 提供了本项目的一些数据支持，在此表示由衷地感谢。
 
 [Vincent Young](https://github.com/missuo) (i@yyt.moe)
 
@@ -303,12 +433,12 @@ BGP.TOOLS 提供了本项目的一些数据支持，在此表示由衷地感谢�
 其他第三方 API 尽管集成在本项目内，但是具体的 TOS 以及 AUP，请详见第三方 API 官网。如遇到 IP 数据错误，也请直接联系他们纠错。
 
 如何获取最新commit的新鲜出炉的二进制可执行文件？
->请前往GitHub Actions中最新一次 [Build & Release](https://github.com/sjlleo/nexttrace/actions/workflows/build.yml) workflow.
+>请前往GitHub Actions中最新一次 [Build & Release](https://github.com/nxtrace/Ntrace-V1/actions/workflows/build.yml) workflow.
 
 ## IP 数据以及精准度说明
 
 对于IP相关信息的纠错反馈，我们目前开放了两个渠道：
->- 本项目的GITHUB ISSUES区中的[IP 错误报告汇总帖](https://github.com/sjlleo/nexttrace/issues/41)
+>- 本项目的GITHUB ISSUES区中的[IP 错误报告汇总帖](https://github.com/nxtrace/NTrace-core/issues/41)
 >- 本项目的纠错专用邮箱: `correction@moeqing.com` （请注意此邮箱仅供IP相关信息纠错专用，其他反馈请发送ISSUE）
 
 NextTrace 有多个数据源可以选择，目前默认使用的 LeoMoeAPI 为我们项目维护的数据源。
@@ -366,3 +496,9 @@ LAX,US,California,Los Anegles
 ```
 
 需要注意的是，NextTrace 支持自动匹配 CSV 中的城市名，如果您的 PTR 记录中有 `losangeles`，您可以只添加上面一条记录就可以正常识别并读取。
+
+rkflow in GitHub Actions.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=nxtrace/NTrace-core&type=Date)](https://star-history.com/#nxtrace/NTrace-core&Date)

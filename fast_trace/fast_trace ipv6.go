@@ -2,18 +2,18 @@ package fastTrace
 
 import (
 	"fmt"
-	"github.com/xgadget-lab/nexttrace/util"
+	"github.com/nxtrace/NTrace-core/ipgeo"
+	"github.com/nxtrace/NTrace-core/printer"
+	"github.com/nxtrace/NTrace-core/trace"
+	"github.com/nxtrace/NTrace-core/tracelog"
+	"github.com/nxtrace/NTrace-core/util"
+	"github.com/nxtrace/NTrace-core/wshandle"
 	"log"
 	"os"
 	"os/signal"
-	"time"
-
-	"github.com/xgadget-lab/nexttrace/ipgeo"
-	"github.com/xgadget-lab/nexttrace/printer"
-	"github.com/xgadget-lab/nexttrace/trace"
-	"github.com/xgadget-lab/nexttrace/tracelog"
-	"github.com/xgadget-lab/nexttrace/wshandle"
 )
+
+var pFastTracer ParamsFastTrace
 
 func (f *FastTracer) tracert_v6(location string, ispCollection ISPCollection) {
 	fp, err := os.OpenFile("/tmp/trace.log", os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModePerm)
@@ -31,19 +31,24 @@ func (f *FastTracer) tracert_v6(location string, ispCollection ISPCollection) {
 	log.SetFlags(0)
 	fmt.Printf("%s『%s %s 』%s\n", printer.YELLOW_PREFIX, location, ispCollection.ISPName, printer.RESET_PREFIX)
 	log.Printf("『%s %s 』\n", location, ispCollection.ISPName)
-	fmt.Printf("traceroute to %s, 30 hops max, 32 byte packets\n", ispCollection.IPv6)
-	log.Printf("traceroute to %s, 30 hops max, 32 byte packets\n", ispCollection.IPv6)
-	ip := util.DomainLookUp(ispCollection.IP, "6", "", true)
+	fmt.Printf("traceroute to %s, %d hops max, %d byte packets\n", ispCollection.IPv6, pFastTracer.MaxHops, pFastTracer.PktSize)
+	log.Printf("traceroute to %s, %d hops max, %d byte packets\n", ispCollection.IPv6, pFastTracer.MaxHops, pFastTracer.PktSize)
+	ip := util.DomainLookUp(ispCollection.IPv6, "6", "", true)
 	var conf = trace.Config{
-		BeginHop:         1,
+		BeginHop:         pFastTracer.BeginHop,
 		DestIP:           ip,
 		DestPort:         80,
-		MaxHops:          30,
+		MaxHops:          pFastTracer.MaxHops,
 		NumMeasurements:  3,
 		ParallelRequests: 18,
-		RDns:             true,
+		RDns:             pFastTracer.RDns,
+		AlwaysWaitRDNS:   pFastTracer.AlwaysWaitRDNS,
+		PacketInterval:   100,
+		TTLInterval:      500,
 		IPGeoSource:      ipgeo.GetSource("LeoMoeAPI"),
-		Timeout:          1 * time.Second,
+		Timeout:          pFastTracer.Timeout,
+		PktSize:          pFastTracer.PktSize,
+		Lang:             pFastTracer.Lang,
 	}
 
 	if oe {
@@ -98,12 +103,20 @@ func (f *FastTracer) testEDU_v6() {
 	f.tracert_v6(TestIPsCollection.Hangzhou.Location, TestIPsCollection.Hangzhou.EDU)
 }
 
-func FastTestv6(tm bool, outEnable bool) {
+func (f *FastTracer) testFast_v6() {
+	f.tracert_v6(TestIPsCollection.Beijing.Location, TestIPsCollection.Beijing.CT163)
+	f.tracert_v6(TestIPsCollection.Beijing.Location, TestIPsCollection.Beijing.CU169)
+	f.tracert_v6(TestIPsCollection.Beijing.Location, TestIPsCollection.Beijing.CM)
+	f.tracert_v6(TestIPsCollection.Beijing.Location, TestIPsCollection.Beijing.EDU)
+}
+
+func FastTestv6(tm bool, outEnable bool, paramsFastTrace ParamsFastTrace) {
 	var c string
 
 	oe = outEnable
+	pFastTracer = paramsFastTrace
 
-	fmt.Println("您想测试哪些ISP的路由？\n1. 国内四网\n2. 电信\n3. 联通\n4. 移动\n5. 教育网")
+	fmt.Println("您想测试哪些ISP的路由？\n1. 国内四网\n2. 电信\n3. 联通\n4. 移动\n5. 教育网\n6. 全部")
 	fmt.Print("请选择选项：")
 	_, err := fmt.Scanln(&c)
 	if err != nil {
@@ -129,7 +142,7 @@ func FastTestv6(tm bool, outEnable bool) {
 
 	switch c {
 	case "1":
-		ft.testAll_v6()
+		ft.testFast_v6()
 	case "2":
 		ft.testCT_v6()
 	case "3":
@@ -138,7 +151,9 @@ func FastTestv6(tm bool, outEnable bool) {
 		ft.testCM_v6()
 	case "5":
 		ft.testEDU_v6()
-	default:
+	case "6":
 		ft.testAll_v6()
+	default:
+		ft.testFast_v6()
 	}
 }

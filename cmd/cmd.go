@@ -12,17 +12,17 @@ import (
 	"time"
 
 	"github.com/akamensky/argparse"
+	"github.com/nxtrace/NTrace-core/config"
+	fastTrace "github.com/nxtrace/NTrace-core/fast_trace"
+	"github.com/nxtrace/NTrace-core/ipgeo"
+	"github.com/nxtrace/NTrace-core/printer"
+	"github.com/nxtrace/NTrace-core/reporter"
+	"github.com/nxtrace/NTrace-core/trace"
+	"github.com/nxtrace/NTrace-core/tracelog"
+	"github.com/nxtrace/NTrace-core/tracemap"
+	"github.com/nxtrace/NTrace-core/util"
+	"github.com/nxtrace/NTrace-core/wshandle"
 	"github.com/syndtr/gocapability/capability"
-	"github.com/xgadget-lab/nexttrace/config"
-	fastTrace "github.com/xgadget-lab/nexttrace/fast_trace"
-	"github.com/xgadget-lab/nexttrace/ipgeo"
-	"github.com/xgadget-lab/nexttrace/printer"
-	"github.com/xgadget-lab/nexttrace/reporter"
-	"github.com/xgadget-lab/nexttrace/trace"
-	"github.com/xgadget-lab/nexttrace/tracelog"
-	"github.com/xgadget-lab/nexttrace/tracemap"
-	"github.com/xgadget-lab/nexttrace/util"
-	"github.com/xgadget-lab/nexttrace/wshandle"
 )
 
 func Excute() {
@@ -41,6 +41,8 @@ func Excute() {
 	maxHops := parser.Int("m", "max-hops", &argparse.Options{Default: 30, Help: "Set the max number of hops (max TTL to be reached)"})
 	dataOrigin := parser.Selector("d", "data-provider", []string{"Ip2region", "ip2region", "IP.SB", "ip.sb", "IPInfo", "ipinfo", "IPInsight", "ipinsight", "IPAPI.com", "ip-api.com", "IPInfoLocal", "ipinfolocal", "chunzhen", "LeoMoeAPI", "leomoeapi", "disable-geoip"}, &argparse.Options{Default: "LeoMoeAPI",
 		Help: "Choose IP Geograph Data Provider [IP.SB, IPInfo, IPInsight, IP-API.com, Ip2region, IPInfoLocal, CHUNZHEN, disable-geoip]"})
+	powProvider := parser.Selector("", "pow-provider", []string{"api.leo.moe", "sakura"}, &argparse.Options{Default: "api.leo.moe",
+		Help: "Choose PoW Provider [api.leo.moe, sakura] For China mainland users, please use sakura"})
 	noRdns := parser.Flag("n", "no-rdns", &argparse.Options{Help: "Do not resolve IP addresses to their domain names"})
 	alwaysRdns := parser.Flag("a", "always-rdns", &argparse.Options{Help: "Always resolve IP addresses to their domain names"})
 	routePath := parser.Flag("P", "route-path", &argparse.Options{Help: "Print traceroute hop path by ASN and location"})
@@ -53,12 +55,15 @@ func Excute() {
 	classicPrint := parser.Flag("c", "classic", &argparse.Options{Help: "Classic Output trace results like BestTrace"})
 	beginHop := parser.Int("f", "first", &argparse.Options{Default: 1, Help: "Start from the first_ttl hop (instead from 1)"})
 	disableMaptrace := parser.Flag("M", "map", &argparse.Options{Help: "Disable Print Trace Map"})
+	disableMPLS := parser.Flag("e", "disable-mpls", &argparse.Options{Help: "Disable MPLS"})
 	ver := parser.Flag("v", "version", &argparse.Options{Help: "Print version info and exit"})
-	src_addr := parser.String("s", "source", &argparse.Options{Help: "Use source src_addr for outgoing packets"})
-	src_dev := parser.String("D", "dev", &argparse.Options{Help: "Use the following Network Devices as the source address in outgoing packets"})
+	srcAddr := parser.String("s", "source", &argparse.Options{Help: "Use source src_addr for outgoing packets"})
+	srcDev := parser.String("D", "dev", &argparse.Options{Help: "Use the following Network Devices as the source address in outgoing packets"})
 	router := parser.Flag("R", "route", &argparse.Options{Help: "Show Routing Table [Provided By BGP.Tools]"})
-	packet_interval := parser.Int("z", "send-time", &argparse.Options{Default: 100, Help: "Set the time interval for sending every packet. Useful when some routers use rate-limit for ICMP messages"})
-	ttl_interval := parser.Int("i", "ttl-time", &argparse.Options{Default: 500, Help: "Set the time interval for sending packets groups by TTL. Useful when some routers use rate-limit for ICMP messages"})
+	packetInterval := parser.Int("z", "send-time", &argparse.Options{Default: 100, Help: "Set how many [milliseconds] between sending each packet.. Useful when some routers use rate-limit for ICMP messages"})
+	ttlInterval := parser.Int("i", "ttl-time", &argparse.Options{Default: 500, Help: "Set how many [milliseconds] between sending packets groups by TTL. Useful when some routers use rate-limit for ICMP messages"})
+	timeout := parser.Int("", "timeout", &argparse.Options{Default: 1000, Help: "The number of [milliseconds] to keep probe sockets open before giving up on the connection."})
+	packetSize := parser.Int("", "psize", &argparse.Options{Default: 52, Help: "Set the packet size (payload size)"})
 	str := parser.StringPositional(&argparse.Options{Help: "IP Address or domain name"})
 	dot := parser.Selector("", "dot-server", []string{"dnssb", "aliyun", "dnspod", "google", "cloudflare"}, &argparse.Options{
 		Help: "Use DoT Server for DNS Parse [dnssb, aliyun, dnspod, google, cloudflare]"})
@@ -87,7 +92,19 @@ func Excute() {
 	}
 
 	if *fast_trace {
-		fastTrace.FastTest(*tcp, *output)
+		var paramsFastTrace = fastTrace.ParamsFastTrace{
+			SrcDev:         *srcDev,
+			SrcAddr:        *srcAddr,
+			BeginHop:       *beginHop,
+			MaxHops:        *maxHops,
+			RDns:           !*noRdns,
+			AlwaysWaitRDNS: *alwaysRdns,
+			Lang:           *lang,
+			PktSize:        *packetSize,
+			Timeout:        time.Duration(*timeout) * time.Millisecond,
+		}
+
+		fastTrace.FastTest(*tcp, *output, paramsFastTrace)
 		if *output {
 			fmt.Println("您的追踪日志已经存放在 /tmp/trace.log 中")
 		}
@@ -95,6 +112,7 @@ func Excute() {
 		os.Exit(0)
 	}
 
+	// DOMAIN处理开始
 	if domain == "" {
 		fmt.Print(parser.Usage(err))
 		return
@@ -111,6 +129,7 @@ func Excute() {
 			domain = strings.Split(domain, ":")[0]
 		}
 	}
+	// DOMAIN处理结束
 
 	capabilities_check()
 	// return
@@ -121,6 +140,42 @@ func Excute() {
 		fmt.Println("NextTrace 基于 Windows 的路由跟踪还在早期开发阶段，目前还存在诸多问题，TCP/UDP SYN 包请求可能不能正常运行")
 	}
 
+	if *dn42 {
+		// 初始化配置
+		config.InitConfig()
+		*dataOrigin = "DN42"
+		*disableMaptrace = true
+	}
+
+	/**
+	 * 此处若使用goroutine同时运行ws的建立与nslookup，
+	 * 会导致第一跳的IP信息无法获取，原因不明。
+	 */
+	//var wg sync.WaitGroup
+	//wg.Add(2)
+	//
+	//go func() {
+	//	defer wg.Done()
+	if strings.ToUpper(*dataOrigin) == "LEOMOEAPI" {
+		val, ok := os.LookupEnv("NEXTTRACE_DATAPROVIDER")
+		if strings.ToUpper(*powProvider) != "API.LEO.MOE" {
+			util.PowProviderParam = *powProvider
+		}
+		if ok {
+			*dataOrigin = val
+		} else {
+			w := wshandle.New()
+			w.Interrupt = make(chan os.Signal, 1)
+			signal.Notify(w.Interrupt, os.Interrupt)
+			defer func() {
+				w.Conn.Close()
+			}()
+		}
+	}
+	//}()
+	//
+	//go func() {
+	//	defer wg.Done()
 	if *udp {
 		if *ipv6Only {
 			fmt.Println("[Info] IPv6 UDP Traceroute is not supported right now.")
@@ -136,42 +191,31 @@ func Excute() {
 			ip = util.DomainLookUp(domain, "all", *dot, *jsonPrint)
 		}
 	}
+	//}()
+	//
+	//wg.Wait()
 
-	if *src_dev != "" {
-		dev, _ := net.InterfaceByName(*src_dev)
-
+	if *srcDev != "" {
+		dev, _ := net.InterfaceByName(*srcDev)
 		if addrs, err := dev.Addrs(); err == nil {
 			for _, addr := range addrs {
 				if (addr.(*net.IPNet).IP.To4() == nil) == (ip.To4() == nil) {
-					*src_addr = addr.(*net.IPNet).IP.String()
+					*srcAddr = addr.(*net.IPNet).IP.String()
+					// 检查是否是内网IP
+					if !(net.ParseIP(*srcAddr).IsPrivate() ||
+						net.ParseIP(*srcAddr).IsLoopback() ||
+						net.ParseIP(*srcAddr).IsLinkLocalUnicast() ||
+						net.ParseIP(*srcAddr).IsLinkLocalMulticast()) {
+						// 若不是则跳出
+						break
+					}
 				}
 			}
 		}
 	}
 
-	if *dn42 {
-		// 初始化配置
-		config.InitConfig()
-		*dataOrigin = "DN42"
-		*disableMaptrace = true
-	}
-
-	if strings.ToUpper(*dataOrigin) == "LEOMOEAPI" {
-		val, ok := os.LookupEnv("NEXTTRACE_DATAPROVIDER")
-		if ok {
-			*dataOrigin = val
-		} else {
-			w := wshandle.New()
-			w.Interrupt = make(chan os.Signal, 1)
-			signal.Notify(w.Interrupt, os.Interrupt)
-			defer func() {
-				w.Conn.Close()
-			}()
-		}
-	}
-
 	if !*jsonPrint {
-		printer.PrintTraceRouteNav(ip, domain, *dataOrigin, *maxHops)
+		printer.PrintTraceRouteNav(ip, domain, *dataOrigin, *maxHops, *packetSize)
 	}
 
 	var m trace.Method = ""
@@ -191,20 +235,21 @@ func Excute() {
 
 	var conf = trace.Config{
 		DN42:             *dn42,
-		SrcAddr:          *src_addr,
+		SrcAddr:          *srcAddr,
 		BeginHop:         *beginHop,
 		DestIP:           ip,
 		DestPort:         *port,
 		MaxHops:          *maxHops,
-		PacketInterval:   *packet_interval,
-		TTLInterval:      *ttl_interval,
+		PacketInterval:   *packetInterval,
+		TTLInterval:      *ttlInterval,
 		NumMeasurements:  *numMeasurements,
 		ParallelRequests: *parallelRequests,
 		Lang:             *lang,
 		RDns:             !*noRdns,
 		AlwaysWaitRDNS:   *alwaysRdns,
 		IPGeoSource:      ipgeo.GetSource(*dataOrigin),
-		Timeout:          1 * time.Second,
+		Timeout:          time.Duration(*timeout) * time.Millisecond,
+		PktSize:          *packetSize,
 	}
 
 	if !*tablePrint {
@@ -233,6 +278,19 @@ func Excute() {
 		conf.AsyncPrinter = nil
 	}
 
+	if util.Uninterrupted != "" && *rawPrint {
+		for {
+			_, err := trace.Traceroute(m, conf)
+			if err != nil {
+				fmt.Println(err)
+			}
+		}
+	}
+
+	if *disableMPLS {
+		util.DisableMPLS = "1"
+	}
+
 	res, err := trace.Traceroute(m, conf)
 
 	if err != nil {
@@ -253,7 +311,8 @@ func Excute() {
 		fmt.Println(err)
 		return
 	}
-	if !*disableMaptrace && strings.ToUpper(*dataOrigin) == "LEOMOEAPI" {
+	if !*disableMaptrace &&
+		(util.StringInSlice(strings.ToUpper(*dataOrigin), []string{"LEOMOEAPI", "IPINFO", "IPINFO", "IP-API.COM", "IPAPI.COM"})) {
 		url, err := tracemap.GetMapUrl(string(r))
 		if err != nil {
 			log.Fatalln(err)
