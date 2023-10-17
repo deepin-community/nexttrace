@@ -5,3 +5,4 @@ export DH_GOPKG := github.com/nxtrace/NTrace-core
 	dh $@ -Sgolang --with=golang
 
 override_dh_auto_test:
+
