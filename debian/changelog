@@ -1,3 +1,10 @@
+nexttrace (1.2.2.2-1) unstable; urgency=medium
+
+  * Rename binary to nexttrace
+  * Set cap to nexttrace to allow non-root users
+
+ -- Chang Yang <yangchang@deepin.org>  Tue, 17 Oct 2023 14:44:01 +0800
+
 nexttrace (1.2.2.2-0) unstable; urgency=medium
 
   * Upgrade version to 1.2.2.2
