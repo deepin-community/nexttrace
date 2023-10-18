@@ -1,3 +1,9 @@
+nexttrace (1.2.2.2-2) unstable; urgency=medium
+
+  * Rename binary to nexttrace (fix links)
+
+ -- Chang Yang <yangchang@deepin.org>  Wed, 18 Oct 2023 14:38:22 +0800
+
 nexttrace (1.2.2.2-1) unstable; urgency=medium
 
   * Rename binary to nexttrace
