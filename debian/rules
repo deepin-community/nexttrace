@@ -2,7 +2,7 @@
 export DH_GOPKG := github.com/nxtrace/NTrace-core
 
 %:
-	dh $@ -Sgolang --with=golang
+	dh $@ --buildsystem=golang --with=golang
 
 override_dh_auto_test:
 
