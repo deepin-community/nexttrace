@@ -1,3 +1,9 @@
+nexttrace (1.2.2.2-2deepin1) unstable; urgency=medium
+
+  *  Fix build failure caused by cant find package.
+
+ -- Gui-Yue <yuemeng.gui@gmail.com>  Fri, 09 Aug 2024 21:23:04 +0800
+
 nexttrace (1.2.2.2-2) unstable; urgency=medium
 
   * Rename binary to nexttrace (fix links)
